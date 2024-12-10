@@ -9,9 +9,11 @@
    git clone https://github.com/devkazuto/generate-nft-gif.git
    cd generate-nft-gif
    ```
-2.  ```bash
+2. **Installation**
+   ```bash
    pip install -r requirements.txt
    ```
-3. ```bash
+3. **Run Script**
+   ```bash
    python index.py or python3 index.py
    ```
