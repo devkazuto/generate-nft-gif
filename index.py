@@ -42,15 +42,42 @@ class CharacterGenerator:
         dna_string = '|'.join([f"{k}:{v['path']}" for k, v in layers.items()])
         return hashlib.sha1(dna_string.encode()).hexdigest()
     
+    def _parse_rarity_filename(self, filename):
+        """
+        Parse filename to extract base name and rarity
+        
+        Parameters:
+        - filename: Layer filename
+        
+        Returns:
+        - Tuple of (base_name, rarity)
+        """
+        # Remove file extension
+        name_without_ext = os.path.splitext(filename)[0]
+        
+        # Check for rarity format (name#rarity.png)
+        parts = name_without_ext.split('#')
+        if len(parts) > 1:
+            try:
+                base_name = '#'.join(parts[:-1])
+                rarity = int(parts[-1])
+                return base_name, rarity
+            except ValueError:
+                # If conversion fails, treat whole name as base name
+                return name_without_ext, 100
+        
+        # If no rarity specified, default to 100
+        return name_without_ext, 100
+    
     def _select_layer_file(self, layer_name):
         """
-        Randomly select a file from a layer directory
+        Randomly select a file from a layer directory with rarity support
         
         Parameters:
         - layer_name: Name of the layer
         
         Returns:
-        - Dictionary with file path, type, and filename
+        - Dictionary with file path, type, filename, base name, and rarity
         """
         layer_dir = os.path.join(self.base_dir, layer_name)
         if not os.path.exists(layer_dir):
@@ -61,14 +88,23 @@ class CharacterGenerator:
         if not layer_files:
             return None
         
-        selected_file = random.choice(layer_files)
+        # Create a weighted selection based on rarity
+        weighted_files = []
+        for filename in layer_files:
+            base_name, rarity = self._parse_rarity_filename(filename)
+            weighted_files.extend([filename] * rarity)
+        
+        selected_file = random.choice(weighted_files)
         file_path = os.path.join(layer_dir, selected_file)
         file_type = os.path.splitext(selected_file)[1].lower()[1:]
+        base_name, rarity = self._parse_rarity_filename(selected_file)
         
         return {
             'path': file_path,
             'type': file_type,
-            'filename': selected_file
+            'filename': selected_file,
+            'base_name': base_name,
+            'rarity': rarity
         }
     
     def generate_character(self, layers_order, edition, max_attempts=500):
@@ -106,7 +142,7 @@ class CharacterGenerator:
                     else self._generate_png_character(selected_layers, edition)
                 )
                 
-                # Prepare metadata
+                # Prepare metadata with base_name for attributes
                 metadata = {
                     "name": f"{self.config['collection_name']} #{edition}",
                     "description": self.config['collection_description'],
@@ -117,7 +153,7 @@ class CharacterGenerator:
                     "attributes": [
                         {
                             "trait_type": layer,
-                            "value": os.path.splitext(selected_layers[layer]['filename'])[0]
+                            "value": selected_layers[layer]['base_name']
                         }
                         for layer in layers_order if layer in selected_layers
                     ],
