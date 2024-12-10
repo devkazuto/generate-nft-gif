@@ -1,0 +1,23 @@
+{
+    "collection_name": "Your Awesome NFT Collection",
+    "collection_description": "A unique collection of procedurally generated characters",
+    "ipfs_base_uri": "ipfs://NewUriToReplace/",
+    "compiler": "HashLips Art Engine",
+    "output_directory": "output",
+    "base_layers_directory": "nft_layers",
+    "generation_settings": {
+        "total_characters": 1,
+        "max_generation_attempts": 5
+    },
+    "layers_order": [
+        "Background",
+        "Skin",
+        "Clothes", 
+        "Beard",
+        "Mustache",
+        "Nose",
+        "Eyes", 
+        "Head",
+        "Hands"
+    ]
+}
